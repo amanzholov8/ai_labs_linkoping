@@ -96,12 +96,13 @@ class MyAgentState
 
 class MyAgentProgram implements AgentProgram {
 
-	private int initnialRandomActions = 10;
+	private int initnialRandomActions = 20;
 	private Random random_generator = new Random();
 	
 	// Here you can define your variables!
 	public int iterationCounter = 10;
 	public MyAgentState state = new MyAgentState();
+	private Boolean turn = true;
 	
 	// moves the Agent to a random start position
 	// uses percepts to update the Agent position - only the position, other percepts are ignored
@@ -125,13 +126,37 @@ class MyAgentProgram implements AgentProgram {
 		return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
 	}
 	
+	private Action movezigzag(DynamicPercept percept) {
+		DynamicPercept p = (DynamicPercept) percept;
+		Boolean bump = (Boolean)p.getAttribute("bump");
+	    //Boolean dirt = (Boolean)p.getAttribute("dirt");
+	    Boolean home = (Boolean)p.getAttribute("home");
+	    if(bump)
+	    {
+	    	if(turn) {
+	    		turn = false;
+	    		return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
+	    	}
+	    	else {
+	    		turn = true;
+	    		return LIUVacuumEnvironment.ACTION_TURN_LEFT;
+	    	}
+	    }
+		return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
+	}
+	
 	
 	@Override
 	public Action execute(Percept percept) {
 		
 		// DO NOT REMOVE this if condition!!!
     	if (initnialRandomActions>0) {
-    		return moveToRandomStartPosition((DynamicPercept) percept);
+    		DynamicPercept p = (DynamicPercept) percept;
+    		Boolean dirt = (Boolean) p.getAttribute("dirt");
+    		if(dirt)
+    			return LIUVacuumEnvironment.ACTION_SUCK;
+    		return movezigzag((DynamicPercept) percept);
+    		//return moveToRandomStartPosition((DynamicPercept) percept);
     	} else if (initnialRandomActions==0) {
     		// process percept for the last step of the initial random actions
     		initnialRandomActions--;
@@ -190,7 +215,9 @@ class MyAgentProgram implements AgentProgram {
 	    if (dirt)
 	    {
 	    	System.out.println("DIRT -> choosing SUCK action!");
+	    	//state.updateWorld(state.agent_x_position,state.agent_y_position,state.CLEAR);
 	    	state.agent_last_action=state.ACTION_SUCK;
+	    	
 	    	return LIUVacuumEnvironment.ACTION_SUCK;
 	    } 
 	    else
@@ -207,6 +234,11 @@ class MyAgentProgram implements AgentProgram {
 	    	}
 	    }
 	}
+
+
+
+
+	
 }
 
 public class MyVacuumAgent extends AbstractAgent {
