@@ -97,6 +97,8 @@ class MyAgentProgram implements AgentProgram {
 	public MyAgentState state = new MyAgentState();
 	boolean bottom_right_corner = false;
 	boolean right_side = false;
+	boolean down = false;
+	boolean notTurned = true;
 
 	// moves the Agent to a random start position
 	// uses percepts to update the Agent position - only the position, other
@@ -206,14 +208,40 @@ class MyAgentProgram implements AgentProgram {
 					turnRight();
 					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
 				}*/
+			
+			    if (state.agent_direction == MyAgentState.SOUTH && bump)
+			    	down = true;
+			
+			    if (down && notTurned) {
+			    	turnLeft();
+			    	notTurned = false;
+					return LIUVacuumEnvironment.ACTION_TURN_LEFT;
+			    }
+				if (down && state.agent_direction == MyAgentState.EAST && bump) {
+					state.agent_last_action = state.ACTION_NONE;
+					return NoOpAction.NO_OP;
+				}
+			
+				if (!down && state.agent_direction != MyAgentState.SOUTH) {
+					turnRight();
+					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
+				}
+				
+				
+				state.agent_last_action = state.ACTION_MOVE_FORWARD;
+				return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
+			
+				/*
 				if (bump) {
 					turnRight();
+					//start_x = state.agent_x_position;
+					//start_y = state.agent_y_position;
 					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
 				} else {
 					state.agent_last_action = state.ACTION_MOVE_FORWARD;
 					return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
 				}
-			//}
+			//}*/
 		}
 	}
 
