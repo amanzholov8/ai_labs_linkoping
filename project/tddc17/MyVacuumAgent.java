@@ -96,9 +96,11 @@ class MyAgentProgram implements AgentProgram {
 	public int iterationCounter = 30;
 	public MyAgentState state = new MyAgentState();
 	boolean bottom_right_corner = false;
-	boolean right_side = false;
 	boolean down = false;
 	boolean notTurned = true;
+
+	boolean leftTurn = true;
+	boolean isTurning = false;
 
 	// moves the Agent to a random start position
 	// uses percepts to update the Agent position - only the position, other
@@ -201,50 +203,79 @@ class MyAgentProgram implements AgentProgram {
 		} else {
 			// Code to lead the agent at the bottom right corner
 			// The agent's direction must be WEST to start the zigzag method
-			/*if (!bottom_right_corner && state.agent_direction != MyAgentState.WEST) {
-				// Modify direction of the agent
-				adjustDirection(MyAgentState.EAST);
-				if(state.agent_direction != MyAgentState.EAST) {
-					turnRight();
-					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
-				}*/
-			
-			    if (state.agent_direction == MyAgentState.SOUTH && bump)
-			    	down = true;
-			
-			    if (down && notTurned) {
-			    	turnLeft();
-			    	notTurned = false;
+			/*
+			 * if (!bottom_right_corner && state.agent_direction != MyAgentState.WEST) { //
+			 * Modify direction of the agent adjustDirection(MyAgentState.EAST);
+			 * if(state.agent_direction != MyAgentState.EAST) { turnRight(); return
+			 * LIUVacuumEnvironment.ACTION_TURN_RIGHT; }
+			 */
+			if (!bottom_right_corner) {
+				if (state.agent_direction == MyAgentState.SOUTH && bump)
+					down = true;
+
+				if (down && notTurned) {
+					turnLeft();
+					notTurned = false;
 					return LIUVacuumEnvironment.ACTION_TURN_LEFT;
-			    }
-				if (down && state.agent_direction == MyAgentState.EAST && bump) {
-					state.agent_last_action = state.ACTION_NONE;
-					return NoOpAction.NO_OP;
 				}
-			
+				if (down && state.agent_direction == MyAgentState.EAST && bump) {
+					turnLeft();
+					bottom_right_corner = true;
+					return LIUVacuumEnvironment.ACTION_TURN_LEFT;
+				}
+
 				if (!down && state.agent_direction != MyAgentState.SOUTH) {
 					turnRight();
 					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
 				}
-				
-				
+
 				state.agent_last_action = state.ACTION_MOVE_FORWARD;
 				return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
-			
-				/*
-				if (bump) {
-					turnRight();
-					//start_x = state.agent_x_position;
-					//start_y = state.agent_y_position;
-					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
-				} else {
+			}
+
+			if(home) {
+				state.agent_last_action = state.ACTION_NONE;
+				return NoOpAction.NO_OP;
+			}
+			if (isTurning) {
+				if (state.agent_last_action != state.ACTION_MOVE_FORWARD) {
 					state.agent_last_action = state.ACTION_MOVE_FORWARD;
 					return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
+				} else {
+					isTurning = false;
+					if (leftTurn) {
+						turnLeft();
+						leftTurn = false;
+						return LIUVacuumEnvironment.ACTION_TURN_LEFT;
+					} else {
+						turnRight();
+						leftTurn = true;
+						return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
+					}
 				}
-			//}*/
+			}
+			if (bump) {
+				isTurning = true;
+				if (leftTurn) {
+					turnLeft();
+					return LIUVacuumEnvironment.ACTION_TURN_LEFT;
+				} else {
+					turnRight();
+					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
+				}
+			} else {
+				state.agent_last_action = state.ACTION_MOVE_FORWARD;
+				return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
+			}
+			
+			/*
+			 * if (bump) { turnRight(); //start_x = state.agent_x_position; //start_y =
+			 * state.agent_y_position; return LIUVacuumEnvironment.ACTION_TURN_RIGHT; } else
+			 * { state.agent_last_action = state.ACTION_MOVE_FORWARD; return
+			 * LIUVacuumEnvironment.ACTION_MOVE_FORWARD; } //}
+			 */
 		}
 	}
-
 
 	private void turnRight() {
 		state.agent_last_action = state.ACTION_TURN_RIGHT;
