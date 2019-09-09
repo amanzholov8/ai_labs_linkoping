@@ -233,12 +233,20 @@ class MyAgentProgram implements AgentProgram {
 				return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
 			}
 
-			if(home) {
+			if(isTurning && home && bump) {
 				state.agent_last_action = state.ACTION_NONE;
 				return NoOpAction.NO_OP;
+			} else if (isTurning && bump && !home) {
+				isTurning = false;
+				turnRight();
+				leftTurn = true;
+				return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
 			}
+			
+			
 			if (isTurning) {
-				if (state.agent_last_action != state.ACTION_MOVE_FORWARD) {
+				if (state.agent_last_action != state.ACTION_MOVE_FORWARD && state.agent_last_action != state.ACTION_SUCK) {
+					System.out.println("gg");
 					state.agent_last_action = state.ACTION_MOVE_FORWARD;
 					return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
 				} else {
