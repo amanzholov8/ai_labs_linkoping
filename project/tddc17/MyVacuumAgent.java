@@ -6,6 +6,8 @@ import aima.core.agent.AgentProgram;
 import aima.core.agent.Percept;
 import aima.core.agent.impl.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 class MyAgentState {
@@ -103,6 +105,13 @@ class MyAgentProgram implements AgentProgram {
 	
 	int trapped_count = 0; //needed to keep track whether agent got stuck
 	boolean moved_random = false; //after getting stuck and moving random, set this to true
+	int c = 0;
+	
+	//to avoid getting stuck
+	boolean looping = false;
+	boolean invertLeftTurn = false;
+	//keep track of how many times points is visited if possibility of stuck
+	Map<Pair, Integer> points  = new HashMap<Pair, Integer>();
 
 	// moves the Agent to a random start position
 	// uses percepts to update the Agent position - only the position, other
@@ -228,8 +237,31 @@ class MyAgentProgram implements AgentProgram {
 				turnRight();
 				leftTurn = true;
 				trapped_count++;
+				//make a pair object containing current position
+				Pair temp = new Pair(state.agent_x_position, state.agent_y_position);
+				//count how many times the current point is visited
+				Integer count = points.get(temp);
+			    if(count == null){
+			        count = 0;
+			    }
+			    points.put(temp, count + 1);
+				
+			    if (points.get(temp) > 5) {
+					looping = true;
+				}
 				return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
 			}
+			
+			
+			if (looping) {
+				isTurning = true;
+				leftTurn = true;
+				looping = false;
+				invertLeftTurn = true;
+				turnRight();
+				return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
+			}
+			
 			
 			//if got unstuck after moving random, reset the zigzag movement
 			if (moved_random) {
@@ -277,6 +309,10 @@ class MyAgentProgram implements AgentProgram {
 					if (leftTurn) {
 						turnLeft();
 						leftTurn = false;
+						if (invertLeftTurn) {
+							leftTurn = true;
+							invertLeftTurn = false;
+						}
 						return LIUVacuumEnvironment.ACTION_TURN_LEFT;
 					} else {
 						turnRight();
@@ -344,6 +380,33 @@ class MyAgentProgram implements AgentProgram {
 
 		}
 	}
+	
+	//class to keep track of position
+	public class Pair<L,R> {
+
+		  private final L left;
+		  private final R right;
+
+		  public Pair(L left, R right) {
+		    this.left = left;
+		    this.right = right;
+		  }
+
+		  public L getLeft() { return left; }
+		  public R getRight() { return right; }
+
+		  @Override
+		  public int hashCode() { return left.hashCode() ^ right.hashCode(); }
+
+		  @Override
+		  public boolean equals(Object o) {
+		    if (!(o instanceof Pair)) return false;
+		    Pair pairo = (Pair) o;
+		    return this.left.equals(pairo.getLeft()) &&
+		           this.right.equals(pairo.getRight());
+		  }
+
+		}
 
 }
 
