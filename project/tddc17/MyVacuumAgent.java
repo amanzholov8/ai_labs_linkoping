@@ -93,14 +93,13 @@ class MyAgentProgram implements AgentProgram {
 	private Random random_generator = new Random();
 
 	// Here you can define your variables!
-	public int iterationCounter = 30;
 	public MyAgentState state = new MyAgentState();
-	boolean bottom_right_corner = false;
-	boolean down = false;
-	boolean notTurned = true;
+	
+	boolean reached_bottom = false; //did agent reach bottom (i.e south) wall?
+	boolean bottom_right_corner = false; //did agent reach the bottom corner?
 
-	boolean leftTurn = true;
-	boolean isTurning = false;
+	boolean leftTurn = true; //in zigzag move, turn left or right? (first in turns left)
+	boolean isTurning = false; //is agent performing turning in zigzag (true only when agent reaches wall)
 
 	// moves the Agent to a random start position
 	// uses percepts to update the Agent position - only the position, other
@@ -158,11 +157,6 @@ class MyAgentProgram implements AgentProgram {
 		System.out.println("y=" + state.agent_y_position);
 		System.out.println("dir=" + state.agent_direction);
 
-		/*
-		 * iterationCounter--;
-		 * 
-		 * if (iterationCounter==0) return NoOpAction.NO_OP;
-		 */
 		DynamicPercept p = (DynamicPercept) percept;
 		Boolean bump = (Boolean) p.getAttribute("bump");
 		Boolean dirt = (Boolean) p.getAttribute("dirt");
@@ -195,44 +189,44 @@ class MyAgentProgram implements AgentProgram {
 		state.printWorldDebug();
 
 		// Next action selection based on the percept value
+		//whenever agent sees dirt, before performing any other action, it cleans the dirt
 		if (dirt) {
 			System.out.println("DIRT -> choosing SUCK action!");
 			state.agent_last_action = state.ACTION_SUCK;
-
 			return LIUVacuumEnvironment.ACTION_SUCK;
 		} else {
-			// Code to lead the agent at the bottom right corner
-			// The agent's direction must be WEST to start the zigzag method
-			/*
-			 * if (!bottom_right_corner && state.agent_direction != MyAgentState.WEST) { //
-			 * Modify direction of the agent adjustDirection(MyAgentState.EAST);
-			 * if(state.agent_direction != MyAgentState.EAST) { turnRight(); return
-			 * LIUVacuumEnvironment.ACTION_TURN_RIGHT; }
-			 */
+			
+			//Part 1. Reaching the bottom right corner and facing correct (NORTH) direction when finished
+			
+			// Code to lead the agent to the bottom right corner
+			// The agent's direction must be NORTH to start the zigzag method
 			if (!bottom_right_corner) {
+				//if not facing SOUTH, turn
+				if (!reached_bottom && state.agent_direction != MyAgentState.SOUTH) {
+					turnRight();
+					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
+				}
+				//if facing south and bumbed, the agent reached the bottom wall
 				if (state.agent_direction == MyAgentState.SOUTH && bump)
-					down = true;
-
-				if (down && notTurned) {
+					reached_bottom = true;
+				//after reaching bottom wall, the agent needs to face EAST
+				if (reached_bottom && state.agent_direction != MyAgentState.EAST) {
 					turnLeft();
-					notTurned = false;
 					return LIUVacuumEnvironment.ACTION_TURN_LEFT;
 				}
-				if (down && state.agent_direction == MyAgentState.EAST && bump) {
+				if (reached_bottom && state.agent_direction == MyAgentState.EAST && bump) {
 					turnLeft();
 					bottom_right_corner = true;
 					return LIUVacuumEnvironment.ACTION_TURN_LEFT;
 				}
 
-				if (!down && state.agent_direction != MyAgentState.SOUTH) {
-					turnRight();
-					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
-				}
-
 				state.agent_last_action = state.ACTION_MOVE_FORWARD;
 				return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
 			}
+			
+			//Part 2. Exploring the world via zigzag moves
 
+			//code for agent to not end up not at home for even-sized board
 			if(isTurning && home && bump) {
 				state.agent_last_action = state.ACTION_NONE;
 				return NoOpAction.NO_OP;
@@ -243,13 +237,14 @@ class MyAgentProgram implements AgentProgram {
 				return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
 			}
 			
-			
+			//Turn (consists of 3 actions) - turn left/right, move forward, turn left/right
 			if (isTurning) {
+				//move_forward
 				if (state.agent_last_action != state.ACTION_MOVE_FORWARD && state.agent_last_action != state.ACTION_SUCK) {
 					System.out.println("gg");
 					state.agent_last_action = state.ACTION_MOVE_FORWARD;
 					return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
-				} else {
+				} else { //second turn left/right action
 					isTurning = false;
 					if (leftTurn) {
 						turnLeft();
@@ -262,8 +257,10 @@ class MyAgentProgram implements AgentProgram {
 					}
 				}
 			}
+			
 			if (bump) {
 				isTurning = true;
+				//first turn left/right action
 				if (leftTurn) {
 					turnLeft();
 					return LIUVacuumEnvironment.ACTION_TURN_LEFT;
@@ -271,20 +268,15 @@ class MyAgentProgram implements AgentProgram {
 					turnRight();
 					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
 				}
-			} else {
+			} else { //move forward until the agent reaches the wall
 				state.agent_last_action = state.ACTION_MOVE_FORWARD;
 				return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
 			}
-			
-			/*
-			 * if (bump) { turnRight(); //start_x = state.agent_x_position; //start_y =
-			 * state.agent_y_position; return LIUVacuumEnvironment.ACTION_TURN_RIGHT; } else
-			 * { state.agent_last_action = state.ACTION_MOVE_FORWARD; return
-			 * LIUVacuumEnvironment.ACTION_MOVE_FORWARD; } //}
-			 */
 		}
 	}
 
+	//function for updating the state of the agent, before making a right turn
+	//needs to be called before every turn right action
 	private void turnRight() {
 		state.agent_last_action = state.ACTION_TURN_RIGHT;
 		switch (state.agent_direction) {
@@ -304,6 +296,8 @@ class MyAgentProgram implements AgentProgram {
 		}
 	}
 
+	//function for updating the state of the agent, before making a left turn
+	//needs to be called before every turn left action
 	private void turnLeft() {
 		state.agent_last_action = state.ACTION_TURN_LEFT;
 		switch (state.agent_direction) {
