@@ -100,6 +100,9 @@ class MyAgentProgram implements AgentProgram {
 
 	boolean leftTurn = true; //in zigzag move, turn left or right? (first in turns left)
 	boolean isTurning = false; //is agent performing turning in zigzag (true only when agent reaches wall)
+	
+	int trapped_count = 0; //needed to keep track whether agent got stuck
+	boolean moved_random = false; //after getting stuck and moving random, set this to true
 
 	// moves the Agent to a random start position
 	// uses percepts to update the Agent position - only the position, other
@@ -123,16 +126,6 @@ class MyAgentProgram implements AgentProgram {
 		state.agent_last_action = state.ACTION_MOVE_FORWARD;
 		return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
 	}
-
-	/*
-	 * private Action movezigzag(DynamicPercept percept) { DynamicPercept p =
-	 * (DynamicPercept) percept; Boolean bump = (Boolean)p.getAttribute("bump");
-	 * //Boolean dirt = (Boolean)p.getAttribute("dirt"); Boolean home =
-	 * (Boolean)p.getAttribute("home"); if(bump) { if(turn) { turn = false; return
-	 * LIUVacuumEnvironment.ACTION_TURN_RIGHT; } else { turn = true; return
-	 * LIUVacuumEnvironment.ACTION_TURN_LEFT; } } return
-	 * LIUVacuumEnvironment.ACTION_MOVE_FORWARD; }
-	 */
 
 	@Override
 	public Action execute(Percept percept) {
@@ -234,14 +227,49 @@ class MyAgentProgram implements AgentProgram {
 				isTurning = false;
 				turnRight();
 				leftTurn = true;
+				trapped_count++;
 				return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
 			}
+			
+			//if got unstuck after moving random, reset the zigzag movement
+			if (moved_random) {
+				isTurning = false;
+				if (!leftTurn && state.agent_direction != MyAgentState.NORTH) {
+					turnRight();
+					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
+				} else if (leftTurn && state.agent_direction != MyAgentState.SOUTH) {
+					turnRight();
+					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
+				}
+				leftTurn = !leftTurn;
+				trapped_count = 0;
+				moved_random = false;
+			}
+			
+			//if stuck in one place for more than 2 moves, make random move
+			if (trapped_count>2) {
+				//after 3 random moves it probably got unstuck
+				if (trapped_count > 5) {
+					moved_random = true; 
+				}
+				trapped_count++;
+				int action = random_generator.nextInt(6);
+				if (action == 0) {
+					turnLeft();
+					return LIUVacuumEnvironment.ACTION_TURN_LEFT;
+				} else if (action == 1) {
+					turnRight();
+					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
+				}
+				state.agent_last_action = state.ACTION_MOVE_FORWARD;
+				return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
+			}
+			
 			
 			//Turn (consists of 3 actions) - turn left/right, move forward, turn left/right
 			if (isTurning) {
 				//move_forward
 				if (state.agent_last_action != state.ACTION_MOVE_FORWARD && state.agent_last_action != state.ACTION_SUCK) {
-					System.out.println("gg");
 					state.agent_last_action = state.ACTION_MOVE_FORWARD;
 					return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
 				} else { //second turn left/right action
