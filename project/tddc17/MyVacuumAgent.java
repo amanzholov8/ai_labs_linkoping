@@ -246,8 +246,9 @@ class MyAgentProgram implements AgentProgram {
 			    }
 			    points.put(temp, count + 1);
 				
-			    if (points.get(temp) > 5) {
-					looping = true;
+			    if (points.get(temp) > 2) {
+					//looping back and forth
+			    	looping = true;
 				}
 				return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
 			}
@@ -279,22 +280,15 @@ class MyAgentProgram implements AgentProgram {
 			}
 			
 			//if stuck in one place for more than 2 moves, make random move
-			if (trapped_count>2) {
+			if (trapped_count>1) {
 				//after 3 random moves it probably got unstuck
-				if (trapped_count > 5) {
-					moved_random = true; 
-				}
+				//if (trapped_count > 5) {
+				//	moved_random = true; 
+				//}
+				moved_random = true;
 				trapped_count++;
-				int action = random_generator.nextInt(6);
-				if (action == 0) {
-					turnLeft();
-					return LIUVacuumEnvironment.ACTION_TURN_LEFT;
-				} else if (action == 1) {
-					turnRight();
-					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
-				}
-				state.agent_last_action = state.ACTION_MOVE_FORWARD;
-				return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
+				turnLeft();
+				return LIUVacuumEnvironment.ACTION_TURN_LEFT;
 			}
 			
 			
@@ -305,6 +299,7 @@ class MyAgentProgram implements AgentProgram {
 					state.agent_last_action = state.ACTION_MOVE_FORWARD;
 					return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
 				} else { //second turn left/right action
+					trapped_count = 0;
 					isTurning = false;
 					if (leftTurn) {
 						turnLeft();
