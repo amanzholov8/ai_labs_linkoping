@@ -44,8 +44,8 @@ public class CustomGraphSearch implements SearchObject {
 		System.out.println("Implement CustomGraphSearch.java!");
 		
 		while (!frontier.isEmpty()) {
+			//if insertFront is true then use frontier as queue, else use frontier as stack
 			SearchNode node = insertFront ? frontier.removeLast() : frontier.removeFirst();
-			//SearchNode node = frontier.removeLast();
 			explored.add(node);
 			ArrayList<GridPos> childStates = p.getReachableStatesFrom(node.getState());
 			for (GridPos childState: childStates) {
