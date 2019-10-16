@@ -89,13 +89,39 @@ public class QLearningController extends Controller {
 		/* TODO: Remember to change NUM_ACTIONS constant to reflect the number of actions (including 0, no action) */
 		
 		/* TODO: IMPLEMENT THIS FUNCTION */
+		resetRockets();
+		switch (action) {
+			case 0:
+				break;
+			case 1:
+				rightEngine.setBursting(true);
+				break;
+			case 2:
+				leftEngine.setBursting(true);
+				break;
+			case 3:
+				middleEngine.setBursting(true);
+				break;
+			case 4:
+				rightEngine.setBursting(true);
+				middleEngine.setBursting(true);
+				break;
+			case 5:
+				leftEngine.setBursting(true);
+				middleEngine.setBursting(true);
+				break;
+			case 6:
+				rightEngine.setBursting(true);
+				leftEngine.setBursting(true);
+				middleEngine.setBursting(true);
+				break;
+		}
 		
 	}
 
 	/* Main decision loop. Called every iteration by the simulator */
 	public void tick(int currentTime) {
 		iteration++;
-		
 		if (!paused) {
 			String new_state = StateAndReward.getStateAngle(angle.getValue(), vx.getValue(), vy.getValue());
 
@@ -127,6 +153,11 @@ public class QLearningController extends Controller {
 				/* TODO: IMPLEMENT Q-UPDATE HERE! */
 				
 				/* See top for constants and below for helper functions */
+				Qtable.put(prev_stateaction, Qtable.get(prev_stateaction) + 
+						alpha(Ntable.get(prev_stateaction)) * 
+						(previous_reward + GAMMA_DISCOUNT_FACTOR * 
+						getMaxActionQValue(new_state) - 
+						Qtable.get(prev_stateaction)));
 				
 				
 				int action = selectAction(new_state); /* Make sure you understand how it selects an action */

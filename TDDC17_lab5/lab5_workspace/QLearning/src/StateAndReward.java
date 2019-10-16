@@ -6,9 +6,10 @@ public class StateAndReward {
 
 		/* TODO: IMPLEMENT THIS FUNCTION */
 
-		String state = "OneStateToRuleThemAll";
-		
-		return state;
+		//String state = "OneStateToRuleThemAll";
+		int discrete = discretize(angle, 12, -Math.PI, Math.PI);
+		String res = String.valueOf(discrete);
+		return res;
 	}
 
 	/* Reward function for the angle controller */
@@ -16,7 +17,7 @@ public class StateAndReward {
 
 		/* TODO: IMPLEMENT THIS FUNCTION */
 		
-		double reward = 0;
+		double reward = 5.0 - Math.abs(angle);
 
 		return reward;
 	}
