@@ -53,7 +53,7 @@
 						(shakey-at ?s ?r)
 						(box-at ?b ?r)
 						(has-switch ?r)
-						((is-bright ?r)))
+						(is-bright ?r))
 
 		:effect (not (is-bright ?r))
 	)
