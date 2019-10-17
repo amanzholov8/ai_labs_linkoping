@@ -7,7 +7,7 @@ public class StateAndReward {
 		/* TODO: IMPLEMENT THIS FUNCTION */
 
 		//String state = "OneStateToRuleThemAll";
-		int discrete = discretize(angle, 12, -Math.PI, Math.PI);
+		int discrete = discretize(angle, 10, -Math.PI, Math.PI);
 		String res = String.valueOf(discrete);
 		return res;
 	}
@@ -17,7 +17,7 @@ public class StateAndReward {
 
 		/* TODO: IMPLEMENT THIS FUNCTION */
 		
-		double reward = 5.0 - Math.abs(angle);
+		double reward = 8.0 - Math.abs(angle);
 
 		return reward;
 	}
@@ -29,8 +29,8 @@ public class StateAndReward {
 
 		//String state = "OneStateToRuleThemAll2";
 		String stateAngle = getStateAngle(angle, vx, vy);
-		int vxDiscrete = discretize(vx, 10, -5, 5);
-		int vyDiscrete = discretize(vy, 5, -5, 5);
+		int vxDiscrete = discretize(vx, 8, -3, 3);
+		int vyDiscrete = discretize(vy, 6, -4, 4);
 		
 		String res = stateAngle + " " + String.valueOf(vxDiscrete) + " " + String.valueOf(vyDiscrete);
 		return res;
@@ -42,8 +42,8 @@ public class StateAndReward {
 		/* TODO: IMPLEMENT THIS FUNCTION */
 		
 		double rewardAngle = getRewardAngle(angle, vx, vy);
-		double rewardVx = 6.0 - Math.abs(vx);
-		double rewardVy = 6.0 - Math.abs(vy);;
+		double rewardVx = 4.0 - Math.abs(vx);
+		double rewardVy = 4.0 - Math.abs(vy);
 		
 		double reward = rewardAngle + rewardVx + rewardVy;
 
