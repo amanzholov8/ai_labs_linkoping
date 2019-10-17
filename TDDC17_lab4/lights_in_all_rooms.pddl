@@ -1,3 +1,4 @@
+;problem of turning the lights on in all of the rooms in the domain
 (define (problem lights-on-in-all-rooms)
   	(:domain shakey-world)
 
@@ -16,5 +17,6 @@
   			(wide-entrance r1 r2) (wide-entrance r2 r3)
   	)
 
+  	;the problem will be solved when all of the 3 rooms are bright
   	(:goal (and (is-bright r1) (is-bright r2) (is-bright r3)))
 )
